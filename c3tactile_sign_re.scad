@@ -15,10 +15,21 @@ braille_char_space = 2;
 
 text_braille_vdist = 10;
 
+// with these switches you can render background and text
+// separately. This can be useful multi-color prints in
+// bambulab studio (When importing the STLs into BLS select
+// all STLs at once. Then BLS will ask you if these STLs make
+// up a single object. Hit yes, and then you can assign different
+// materials to the subobjekts...).
 render_black = true;
 render_white = true;
-render_sunken_white = true;
+render_sunken_white = true; 
+// ^^^ will only render something, if "enable_sunken_white" is true
 
+// this switch will push the text and brailes "sunken_layers" into
+// the background. This can be useful if you want to have a different
+// color behind the text in the back plate. For example, printing
+// a white color to increase the brightness of fluoresent filament
 enable_sunken_white = false;
 sunken_layers = 2;
 
