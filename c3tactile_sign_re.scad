@@ -17,6 +17,12 @@ text_braille_vdist = 10;
 
 render_black = true;
 render_white = true;
+render_sunken_white = true;
+
+enable_sunken_white = false;
+sunken_layers = 2;
+
+layer_height = 0.2;
 
 module braille_text(txt, layer_h, layer_cnt, extr_w = 0.4, c_sp = 2, dot_d = 2, dot_sp = 0.5)
 {
@@ -145,13 +151,13 @@ module braille_text(txt, layer_h, layer_cnt, extr_w = 0.4, c_sp = 2, dot_d = 2, 
 
 function interpolate(from,to,weight) = from * (1 - weight) + to * weight;
 
-module bevel_text(txt, size, layer_h, layer_cnt, fnt = "Cabin:style=Bold") {
+module bevel_text(txt, size, layer_h, layer_cnt, no_bevel = false, fnt = "Cabin:style=Bold") {
 
     // base
-    linear_extrude(height = layer_h)
+    linear_extrude(height = no_bevel ? layer_h*layer_cnt : layer_h)
     text(text = txt, size = size, font = fnt, $fn=100);
 
-    if (layer_cnt > 1) 
+    if ((layer_cnt > 1) && (!no_bevel))
     for(lc = [1:layer_cnt])
     translate([0,0,lc*layer_h])
     linear_extrude(height = layer_h)
@@ -266,16 +272,48 @@ module txt_border(txt, size, h, edge_r, border_w, fnt = "Cabin:style=Bold") {
 if(render_white)
 color("white")
 union(){
-    bevel_text(sign_text,17,0.2,6, fnt = sign_font);
+    bevel_text(sign_text,17,layer_height,6, fnt = sign_font);
     txt_border(sign_text,17,1,4,1, fnt = sign_font);
     translate([0,-braille_height-text_braille_vdist,0])
-    braille_text(sign_text,0.2,6,c_sp = braille_char_space, dot_d = dot_diam, dot_sp = dot_space);
+    braille_text(sign_text,layer_height,6,c_sp = braille_char_space, dot_d = dot_diam, dot_sp = dot_space);
 }
 
 if(render_black)
-color("black")
-translate([0,0,-1])
-txt_background(sign_text,17,1,5, fnt = sign_font);
+if(!enable_sunken_white) {
+    color("black")
+    translate([0,0,-1])
+    txt_background(sign_text,17,1,5, fnt = sign_font);
+} else {
+    color("DarkSlateGray")
+    difference(){
+        translate([0,0,-1])    
+        txt_background(sign_text,17,1,5, fnt = sign_font);
+        
+        translate([0,0,-sunken_layers*layer_height])
+        bevel_text(sign_text,17,layer_height,6, no_bevel = true, fnt = sign_font);
+        
+        translate([0,0,-sunken_layers*layer_height])
+        txt_border(sign_text,17,1,4,1, fnt = sign_font);
+
+        translate([0,-braille_height-text_braille_vdist,-sunken_layers*layer_height])
+        braille_text(sign_text,layer_height,6,c_sp = braille_char_space, dot_d = dot_diam, dot_sp = dot_space);
+    }
+}
+
+if (enable_sunken_white && render_sunken_white) {
+    color("white")
+    translate([0,0,-sunken_layers*layer_height])
+    bevel_text(sign_text,17,layer_height,sunken_layers, no_bevel = true, fnt = sign_font);
+
+    color("white")
+    translate([0,0,-sunken_layers*layer_height])
+    txt_border(sign_text,17,sunken_layers*layer_height,4,1, fnt = sign_font);
+
+    color("white")
+    translate([0,-braille_height-text_braille_vdist,-sunken_layers*layer_height])
+    braille_text(sign_text,layer_height,sunken_layers,extr_w = 0,c_sp = braille_char_space, dot_d = dot_diam, dot_sp = dot_space);
+
+}
 
 
 
